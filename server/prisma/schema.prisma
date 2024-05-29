@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model TBL_PRMASTER {
+  PRID               Int       @id(map: "PK_TBL_PRMASTER") @default(autoincrement())
+  PR_NUM             String?   @db.NVarChar(100)
+  PR_STATUS          String?   @db.NVarChar(100)
+  RequesterID        Int?
+  DESCRIPTION        String?   @db.NVarChar(Max)
+  ENTERDATE          DateTime? @db.DateTime
+  APPROVED_DATE      DateTime? @db.DateTime
+  ENTERBY            Int?
+  LOCATIONID         Int?
+  TotalValue         Decimal?  @db.Decimal(15, 2)
+  DepartmentId       Int?
+  BuyerId            Int?
+  BuyerRemarks       String?   @db.NVarChar(Max)
+  IsApprove          Int?
+  IsReject           Int?
+  RecallDate         DateTime? @db.DateTime
+  UpdateDateTime     DateTime? @db.DateTime
+  Plant              String?   @db.NVarChar(4000)
+  StoreLocation      String?   @db.NVarChar(2000)
+  PurchasingGroup    String?   @db.NVarChar(2000)
+  IsMRPLines         Int?
+  IsNumberGeneration Int?
+  PRType             String?   @db.NVarChar(50)
+  CreatedBy          String?   @db.NVarChar(Max)
+  RequestBy          String?   @db.NVarChar(Max)
+  CreationDate       DateTime? @db.DateTime
+
+  @@index([ENTERDATE], map: "IX_TBL_PRMASTER_ENTERDATE")
+  @@index([PR_NUM], map: "IX_TBL_PRMASTER_PR_NUM")
+}
+
+model TBL_PRTRANSACTION {
+  PRTRANSID             Int       @id(map: "PK_TBL_PRTRANSACTION") @default(autoincrement())
+  PRID                  Int?
+  PR_LINE               Int?
+  ITEM_ID               Int?
+  ItemCode              String?   @db.NVarChar(Max)
+  ItemName              String?   @db.NVarChar(Max)
+  ITEM_DESCRIPTION      String?   @db.NVarChar(Max)
+  MaterialPODescription String?   @db.NVarChar(Max)
+  UOMId                 Int?
+  QUANTITY              Decimal?  @db.Decimal(15, 2)
+  UNIT_PRICE            Decimal?  @db.Decimal(15, 2)
+  AMOUNT                Decimal?  @db.Decimal(15, 2)
+  CurrencyId            Int?
+  Status                String?   @db.NVarChar(50)
+  RequestDate           DateTime? @db.DateTime
+  BUYERID               Int?
+  BuyerRemarks          String?   @db.NVarChar(4000)
+  IsReject              Int?
+  DeliveryDate          DateTime? @db.DateTime
+  MaterialGroup         String?
+  Plant                 String?
+  StoreLocation         String?
+  PurchasingGroup       String?   @db.NVarChar(2000)
+  AcctAssignmentCat     String?   @db.NVarChar(50)
+  AcctAssignmentCatDesc String?   @db.NVarChar(Max)
+  PONo                  String?   @db.NVarChar(50)
+  PODate                DateTime? @db.DateTime
+  DeletionIndicator     String?   @db.NVarChar(50)
+  TrackingNumber        String?   @db.NVarChar(Max)
+  Department            String?   @db.NVarChar(Max)
+  WBSElement            String?   @db.NVarChar(50)
+  CostCenter            String?   @db.NVarChar(50)
+  PROJECT_ID            Int?
+  ReqReleasedDate       DateTime? @db.DateTime
+  TotalStock            Decimal?  @db.Decimal(15, 2)
+  VendorCode            String?
+  VendorName            String?   @db.NVarChar(4000)
+  POItemValue           Decimal?  @db.Decimal(20, 2)
+  RequesterID           Int?
+  CreatedByID           Int?
+  CreatedBy             String?   @db.NVarChar(Max)
+  RequestBy             String?   @db.NVarChar(Max)
+  ITEM_OLD_DESCRIPTION  String?   @db.NVarChar(Max)
+  POItemNo              String?   @db.NVarChar(50)
+  PODocType             String?   @db.NVarChar(50)
+  POCreatedDate         DateTime? @db.DateTime
+  POQty                 Decimal?  @default(0, map: "DF_TBL_PRTRANSACTION_POQty") @db.Decimal(18, 2)
+  POUom                 String?   @db.NVarChar(50)
+  POUnitPrice           Decimal?  @db.Decimal(18, 2)
+  POTotalGrossAmount    Decimal?  @db.Decimal(18, 2)
+  POItemCurrency        String?   @db.NVarChar(50)
+  LastPONo              String?   @db.NVarChar(50)
+  LastPODate            DateTime? @db.DateTime
+  LastPOQty             Decimal?  @db.Decimal(18, 2)
+  IsShortClause         Int?
+  ShortClauseBy         Int?
+  ShortClauseDate       DateTime? @db.DateTime
+  POVendorCode          String?   @db.NVarChar(50)
+  POVendorName          String?   @db.NVarChar(Max)
+  Priority              String?   @default("N'Normal'", map: "DF_TBL_PRTRANSACTION_Priority") @db.NVarChar(50)
+  CreationDate          DateTime? @db.DateTime
+
+  @@index([POVendorCode], map: "IX_TBL_PRTRANSACTION")
+  @@index([BUYERID], map: "IX_TBL_PRTRANSACTION_BuyerId")
+  @@index([DeletionIndicator], map: "IX_TBL_PRTRANSACTION_Del_Indi")
+  @@index([PRID], map: "IX_TBL_PRTRANSACTION_PR_ID")
+  @@index([PR_LINE], map: "IX_TBL_PRTRANSACTION_PRLine")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model TBL_UOM_MASTER {
+  UOMCODE     String? @db.NVarChar(50)
+  UOMNAME     String? @db.NVarChar(50)
+  IsDecimal   Int?
+  UOM_MAST_ID Int     @default(autoincrement())
+  UOMCODE1    String? @db.NVarChar(50)
+  UOMCODE6    String? @db.NVarChar(50)
+  UOMCODET    String? @db.NVarChar(200)
+
+  @@ignore
+}
