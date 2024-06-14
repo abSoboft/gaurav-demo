@@ -14,11 +14,21 @@
   width: 75%;
   min-width: unset !important;
 }
+
 .p-dropdown-item{
   padding: 16px 10px;
 }
+
 .p-dropdown-item-label{
   width: 100%;
+}
+
+.p-dropdown{
+  border: 1px solid grey;
+}
+
+.p-dropdown:hover{
+  border: 1px solid darkcyan;
 }
 
 .header{
