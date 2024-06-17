@@ -20,15 +20,21 @@ export default function FilterDemo() {
 
   const [page, setPage] = useState(1);
 
-  const [limit] = useState(100);
+  const [limit] = useState(50);
   const [selectedItem, setSelectedItem] = useState(null);
+
+  const [loading, setLoading] = useState(false);
+  const loadLazyTimeout = useRef();
 
   const [search, setSearch] = useState("");
 
+  const [items, setItems] = useState([]);
+  
   const fetchData = async (
     filterValuesTemp = filterValues,
     limitTemp = limit,
-    searchTemp = search
+    searchTemp = search,
+    pageTemp = page
   ) => {
     try {
       const filterParams = Object.entries(filterValuesTemp)
@@ -36,27 +42,94 @@ export default function FilterDemo() {
         .join("&");
       const res = await axios
         .get(
-          `http://localhost:8000/api/getall?page=${page}&limit=${limitTemp}&search=${searchTemp}&${filterParams}`
+          `http://localhost:8000/api/getall?page=${pageTemp}&limit=${limitTemp}&search=${searchTemp}&${filterParams}`
         )
 
-        .then((res) => {
-          console.log("res: ", res);
-          setData([
+        setData((prevData) => {
+          const newData = [
             {
               label: "Germany",
               code: "DE",
-              items: res.data.data,
+              items: [...prevData[0].items, ...res.data.data],
             },
-          ]);
+          ];
+          return newData;
         });
+
+        if (res.data.data.length > 0) {
+          setLoading(false);
+        }
     } catch (error) {
       console.error("Error fetching data", error);
     }
   };
 
+//   const fetchData = async (first, last) => {
+//     try {
+//         const limitTemp = last - first;
+//         const pageTemp = first / limitTemp + 1;  // Assuming page calculation
+
+//         const res = await axios.get(
+//             `http://localhost:8000/api/getall?page=${pageTemp}&limit=${limitTemp}`
+//         );
+//         console.log(res)
+
+
+//         setItems((prevItems) => {
+//             const newItems = [...prevItems];
+//             for (let i = first; i < last; i++) {
+//                 if (res.data.data[i - first]) {
+//                     newItems[i] = { label: `Item #${i}`, value: i, ...res.data.data[i - first] };
+//                 }
+//             }
+//             // console.log(newItems)
+//             return newItems;
+//         });
+//     } catch (error) {
+//         console.error("Error fetching data", error);
+//     }
+// };
+
+
+  const onLazyLoad = (event) => {
+    setLoading(true);
+
+    if (loadLazyTimeout.current) {
+        clearTimeout(loadLazyTimeout.current);
+    }
+
+    loadLazyTimeout.current = setTimeout(
+        () => {
+
+     const newPage = page + 1;
+      setPage(newPage);
+
+     fetchData(filterValues, limit, search, newPage);
+        },
+        1000
+    );
+};
+
+// const onLazyLoad = async (event) => {
+//   setLoading(true);
+
+//   if (loadLazyTimeout.current) {
+//       clearTimeout(loadLazyTimeout.current);
+//   }
+
+//   loadLazyTimeout.current = setTimeout(async () => {
+//       const { first, last } = event;
+//       await fetchData({ first : 1, last : 50 });
+
+//       setLoading(false);
+//   }, Math.random() * 1000 + 250);
+// };
+
+
+
   useEffect(() => {
     fetchData();
-  }, [page, limit, filterValues, search]);
+  }, []);
 
   const formatDate = (dateString) => {
     const options = { day: "2-digit", month: "2-digit", year: "numeric" };
@@ -196,7 +269,8 @@ export default function FilterDemo() {
       <Dropdown
         value={selectedItem}
         onChange={selectedValues}
-        options={data}
+        // options={data}
+        options={items}
         filter={true}
         optionLabel="PR_NUM"
         filterBy="PR_NUM,TotalValue,DESCRIPTION"
@@ -208,6 +282,7 @@ export default function FilterDemo() {
         optionGroupTemplate={groupedItemTemplate}
         className="w-full"
         placeholder=" Select a Transaction"
+        virtualScrollerOptions={{ lazy: true, onLazyLoad: onLazyLoad, itemSize: 38, showLoader: true, loading: loading, delay: 250 }}
       />
     </div>
   );
