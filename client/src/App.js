@@ -10,7 +10,7 @@ function App() {
   return (
     <PrimeReactProvider className="App">
       <AllRoutes />
-    </PrimeReactProvider>
+    </PrimeReactProvider> 
   );
 }
 
