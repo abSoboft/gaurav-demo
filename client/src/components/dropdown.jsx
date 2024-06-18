@@ -17,6 +17,7 @@ export default function FilterDemo() {
     },
   ]);
   const [filterValues, setFilterValues] = useState({});
+  const [test, setTest] = useState(false);
 
   const [page, setPage] = useState(1);
 
@@ -102,7 +103,7 @@ export default function FilterDemo() {
         observer.current.disconnect();
       }
     };
-  }, [data]);
+  }, [data, test]);
 
   const hasMoreData = () => {
     return paginatinDataRef.current?.hasNextPage && !loadingRef.current
@@ -162,11 +163,9 @@ export default function FilterDemo() {
   };
 
   const dataOptionTemplate = (option) => {
-    // console.log('index: ', index);
-    console.log('option: ', option);
-    console.log('index', option.index)
+
     return (
-      <div class="container options text-gray-600" ref={option.index === data[0].items.length - 1 ? lastRowRef : null}>
+      <div className={`container options text-gray-600`} ref={option?.index === limit - 1 ? lastRowRef : null}>
         <span className="">{option?.PR_NUM}</span>
         <span>{option?.PR_STATUS}</span>
         <span className="text-wrap pr-5">{option?.DESCRIPTION}?</span>
@@ -178,7 +177,7 @@ export default function FilterDemo() {
 
   const groupedItemTemplate = (option) => {
     return (
-      <div class="header text-gray-700">
+      <div className="header text-gray-700">
         <span>PR NUMBER </span>
         <span>PR STATUS </span>
 
@@ -265,6 +264,7 @@ export default function FilterDemo() {
         optionGroupTemplate={groupedItemTemplate}
         className="w-full"
         placeholder=" Select a Transaction"
+        onShow={() => setTest(!test)}
       />
        {/* {data[0].items.map((item, index) => (
         <div key={index} ref={index === data[0].items.length - 1 ? lastRowRef : null}></div>
