@@ -7,7 +7,6 @@ import { FaFilter } from "react-icons/fa";
 import axios from "axios";
 import "./dropdown.scss";
 
-
 export default function FilterDemo() {
   const [data, setData] = useState([
     {
@@ -21,7 +20,7 @@ export default function FilterDemo() {
 
   const [page, setPage] = useState(1);
 
-  const [limit] = useState(100);
+  const [limit] = useState(25);
   const [selectedItem, setSelectedItem] = useState(null);
 
   const [search, setSearch] = useState("");
@@ -43,28 +42,26 @@ export default function FilterDemo() {
       const filterParams = Object.entries(filterValuesTemp)
         .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
         .join("&");
-      const res = await axios
-        .get(
-          `http://localhost:8000/api/getall?page=${pageTemp}&limit=${limitTemp}&search=${searchTemp}&${filterParams}`
-        )
-        setData((prevData) => {
-          const newDataWithIndex = res.data.data.map((item, index) => ({
-            ...item,
-            index, 
-          }));
-        
-          return [
-            {
-              label: "Germany",
-              code: "DE",
-              items: [...prevData[0].items, ...newDataWithIndex],
-            },
-          ];
-        });
-        
-          paginatinDataRef.current = res.data.pagination;
+      const res = await axios.get(
+        `http://localhost:8000/api/getall?page=${pageTemp}&limit=${limitTemp}&search=${searchTemp}&${filterParams}`
+      );
+      setData((prevData) => {
+        const newDataWithIndex = res.data.data.map((item, index) => ({
+          ...item,
+          index,
+        }));
+
+        return [
+          {
+            label: "Germany",
+            code: "DE",
+            items: [...prevData[0].items, ...newDataWithIndex],
+          },
+        ];
+      });
+
+      paginatinDataRef.current = res.data.pagination;
       loadingRef.current = false;
-        
     } catch (error) {
       console.error("Error fetching data", error);
       loadingRef.current = false;
@@ -78,7 +75,7 @@ export default function FilterDemo() {
         code: "DE",
         items: [],
       },
-    ])
+    ]);
     paginatinDataRef.current = 1;
     setPage(1);
     fetchData();
@@ -110,8 +107,6 @@ export default function FilterDemo() {
       ? true
       : false;
   };
-
-  
 
   const formatDate = (dateString) => {
     const options = { day: "2-digit", month: "2-digit", year: "numeric" };
@@ -148,7 +143,7 @@ export default function FilterDemo() {
 
   const selectedValues = (e) => {
     console.log("Value ", e.value);
-    setSelectedItem(e.value)
+    setSelectedItem(e.value);
   };
 
   const selectedDataTemplate = (option, props) => {
@@ -163,12 +158,14 @@ export default function FilterDemo() {
   };
 
   const dataOptionTemplate = (option) => {
-
     return (
-      <div className={`container options text-gray-600`} ref={option?.index === limit - 1 ? lastRowRef : null}>
+      <div
+        className={`container options text-gray-600`}
+        ref={option?.index === limit - 1 ? lastRowRef : null}
+      >
         <span className="">{option?.PR_NUM}</span>
         <span>{option?.PR_STATUS}</span>
-        <span className="text-wrap pr-5">{option?.DESCRIPTION}?</span>
+        <span className="text-wrap pr-5">{option?.DESCRIPTION}</span>
         <span>{option?.TotalValue}</span>
         <span>{formatDate(option.ENTERDATE)}</span>
       </div>
@@ -194,6 +191,7 @@ export default function FilterDemo() {
                   type="text"
                   placeholder="Enter value"
                   autoComplete="off"
+                  value={filterValues?.TotalValue}
                   onChange={(e) => {
                     setFilterValues((prevValues) => ({
                       ...prevValues,
@@ -247,6 +245,86 @@ export default function FilterDemo() {
     );
   };
 
+  const emptyMessage = () => {
+    return (
+      <>
+        <div className="header text-gray-700">
+          <span>PR NUMBER </span>
+          <span>PR STATUS </span>
+
+          <span>HEADER TEXT </span>
+          <span>
+            TOTAL VALUE{" "}
+            <FaFilter className="cursor-pointer" onClick={handleFilter4} />
+            {filterModal4 && (
+              <div className="absolute z-10 right-5 mt-20 w-60 bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-gray-700 dark:divide-gray-600">
+                <div className="p-2">
+                  <input
+                    id="search-input-total-value"
+                    className="block w-full px-4 py-2 mb-2 text-gray-800 border rounded-md border-gray-300 focus:outline-none"
+                    type="text"
+                    placeholder="Enter value"
+                    // autoComplete="off"
+                    value={filterValues?.TotalValue}
+                    onChange={(e) => {
+                      setFilterValues((prevValues) => ({
+                        ...prevValues,
+                        TotalValue: e.target.value,
+                      }));
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </span>
+          <span>
+            ENTER DATE{" "}
+            <FaFilter className="cursor-pointer" onClick={handleFilter5} />
+            {filterModal5 && (
+              <div className="absolute z-10 right-0 mt-40 w-72 bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-gray-700 dark:divide-gray-600">
+                <div className="p-4">
+                  <div className="flex flex-col space-y-4">
+                    <div className="flex items-center space-x-4">
+                      <label htmlFor="date-from" className="text-xs">
+                        Date From:
+                      </label>
+                      <input
+                        id="date-from"
+                        className="block w-full px-4 py-2 text-gray-800 border rounded-md border-gray-300 focus:outline-none"
+                        type="date"
+                        onChange={(e) => {
+                          setFilterValues((prevValues) => ({
+                            ...prevValues,
+                            dateFrom: e.target.value,
+                          }));
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <label htmlFor="date-to" className="text-xs">
+                        Date To:
+                      </label>
+                      <input
+                        id="date-to"
+                        className="block w-full px-4 py-2 text-gray-800 border rounded-md border-gray-300 focus:outline-none"
+                        type="date"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </span>
+        </div>
+        <div
+          className={`container options text-gray-600`}
+        >
+          <span className="">No data found</span>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="card flex mx-auto w-3/4 pt-4">
       <Dropdown
@@ -265,11 +343,8 @@ export default function FilterDemo() {
         className="w-full"
         placeholder=" Select a Transaction"
         onShow={() => setTest(!test)}
+        // emptyFilterMessage={emptyMessage}
       />
-       {/* {data[0].items.map((item, index) => (
-        <div key={index} ref={index === data[0].items.length - 1 ? lastRowRef : null}></div>
-      ))} */}
-       {/* <div ref={index === data.length - 1 ? lastRowRef : null}></div> */}
     </div>
   );
 }
