@@ -25,38 +25,92 @@ export default function FilterDemo() {
 
   const [search, setSearch] = useState("");
 
+  const currentPageRef = useRef(1);
+  const observer = useRef(null);
+  const lastRowRef = useRef(null);
+  const paginatinDataRef = useRef(null);
+  const loadingRef = useRef(false);
+
   const fetchData = async (
-    filterValuesTemp = filterValues,
+    pageTemp = currentPageRef.current,
     limitTemp = limit,
-    searchTemp = search
+    searchTemp = search,
+    filterValuesTemp = filterValues
   ) => {
+    loadingRef.current = true;
     try {
       const filterParams = Object.entries(filterValuesTemp)
         .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
         .join("&");
       const res = await axios
         .get(
-          `http://localhost:8000/api/getall?page=${page}&limit=${limitTemp}&search=${searchTemp}&${filterParams}`
+          `http://localhost:8000/api/getall?page=${pageTemp}&limit=${limitTemp}&search=${searchTemp}&${filterParams}`
         )
-
-        .then((res) => {
-          console.log("res: ", res);
-          setData([
+        setData((prevData) => {
+          const newDataWithIndex = res.data.data.map((item, index) => ({
+            ...item,
+            index, 
+          }));
+        
+          return [
             {
               label: "Germany",
               code: "DE",
-              items: res.data.data,
+              items: [...prevData[0].items, ...newDataWithIndex],
             },
-          ]);
+          ];
         });
+        
+          paginatinDataRef.current = res.data.pagination;
+      loadingRef.current = false;
+        
     } catch (error) {
       console.error("Error fetching data", error);
+      loadingRef.current = false;
     }
   };
 
   useEffect(() => {
+    setData([
+      {
+        label: "Germany",
+        code: "DE",
+        items: [],
+      },
+    ])
+    paginatinDataRef.current = 1;
+    setPage(1);
     fetchData();
-  }, [page, limit, filterValues, search]);
+  }, [filterValues, search]);
+
+  useEffect(() => {
+    observer.current = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+      if (entry.isIntersecting && hasMoreData()) {
+        currentPageRef.current += 1;
+        setPage(currentPageRef.current);
+        fetchData();
+      }
+    });
+
+    if (lastRowRef.current) {
+      observer.current.observe(lastRowRef.current);
+    }
+
+    return () => {
+      if (observer.current) {
+        observer.current.disconnect();
+      }
+    };
+  }, [data]);
+
+  const hasMoreData = () => {
+    return paginatinDataRef.current?.hasNextPage && !loadingRef.current
+      ? true
+      : false;
+  };
+
+  
 
   const formatDate = (dateString) => {
     const options = { day: "2-digit", month: "2-digit", year: "numeric" };
@@ -108,8 +162,11 @@ export default function FilterDemo() {
   };
 
   const dataOptionTemplate = (option) => {
+    // console.log('index: ', index);
+    console.log('option: ', option);
+    console.log('index', option.index)
     return (
-      <div class="container options text-gray-600">
+      <div class="container options text-gray-600" ref={option.index === data[0].items.length - 1 ? lastRowRef : null}>
         <span className="">{option?.PR_NUM}</span>
         <span>{option?.PR_STATUS}</span>
         <span className="text-wrap pr-5">{option?.DESCRIPTION}?</span>
@@ -209,6 +266,10 @@ export default function FilterDemo() {
         className="w-full"
         placeholder=" Select a Transaction"
       />
+       {/* {data[0].items.map((item, index) => (
+        <div key={index} ref={index === data[0].items.length - 1 ? lastRowRef : null}></div>
+      ))} */}
+       {/* <div ref={index === data.length - 1 ? lastRowRef : null}></div> */}
     </div>
   );
 }
